@@ -1,0 +1,4 @@
+.opc/work-items/
+.opc/runs/
+.opc/logs/
+node_modules/

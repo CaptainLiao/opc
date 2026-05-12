@@ -1,0 +1,12 @@
+{
+  "name": "opc",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "bin": {
+    "opc": "bin/opc.js"
+  },
+  "scripts": {
+    "opc": "node bin/opc.js"
+  }
+}

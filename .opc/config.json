@@ -1,0 +1,18 @@
+{
+  "codexCommand": "codex",
+  "maxAgentRetries": 1,
+  "agents": {
+    "design": {
+      "prompt": ".opc/agents/design.md"
+    },
+    "code": {
+      "prompt": ".opc/agents/code.md"
+    },
+    "verify": {
+      "prompt": ".opc/agents/verify.md"
+    },
+    "pr": {
+      "prompt": ".opc/agents/pr.md"
+    }
+  }
+}
