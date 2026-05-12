@@ -1,3 +1,4 @@
 {
-  "runner": "codex"
+  "runner": "codex",
+  "timeoutMs": 1200000
 }

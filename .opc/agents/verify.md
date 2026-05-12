@@ -12,6 +12,10 @@
 - verify.md 第一段必须包含且只能包含以下状态之一：
   - status: passed
   - status: failed
+- 如果状态是 status: failed，必须在下一行写责任方：
+  - responsible: agent_code
+  - responsible: agent_design
+  - responsible: environment
 - 如果失败，必须说明失败用例、预期结果、实际结果、判断依据。
 
 输出：

@@ -10,9 +10,12 @@ Default:
 
 ```json
 {
-  "runner": "codex"
+  "runner": "codex",
+  "timeoutMs": 1200000
 }
 ```
+
+`timeoutMs` is the maximum time a single Agent run may take before OPC stops it and retries.
 
 The agent prompts use the fixed files in `.opc/agents/`.
 
