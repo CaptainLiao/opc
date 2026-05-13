@@ -1,8 +1,9 @@
 # OPC Quick Guide for Agents
 
-OPC makes coding-agent work reviewable, resumable, and verifiable.
+OPC is a local workflow protocol for coding agents.
 
-A tiny local runner for coding-agent workflows: specs in, artifacts out, verified before done.
+It includes a tiny CLI controller that turns requirements into reviewable,
+resumable, and verifiable work items: specs in, artifacts out, verified before done.
 
 Core idea:
 
