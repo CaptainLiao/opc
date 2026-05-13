@@ -31,6 +31,8 @@ test("createWorkItem writes the expected directory structure and initial state",
   assert.equal(state.status, "created");
   assert.equal(state.retryCount.agent_design, 0);
   assert.equal(state.fixCount.agent_code, 0);
+  assert.equal(state.retryCount.agent_ui_verify, 0);
+  assert.deepEqual(state.verification, { ui: false });
 });
 
 test("createWorkItem increments IDs with the same date prefix", (t) => {

@@ -6,6 +6,7 @@
 要求：
 - 只分析需求，不修改业务代码。
 - 必须在当前工作单目录写入 spec.md。
+- 如果本需求需要浏览器 UI 验证，请在 spec.md 中单独一行写入：uiVerification: required
 - spec.md 必须包含以下章节：
   - # 背景
   - # 目标

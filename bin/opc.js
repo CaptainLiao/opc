@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { initProject } = require("../lib/init");
+const { initProject, updateProject } = require("../lib/init");
 const { createWorkItem, getWorkItem, listWorkItems } = require("../lib/work-items");
 const { runWorkItem } = require("../lib/orchestrator");
 
@@ -15,6 +15,15 @@ async function main() {
   if (command === "init") {
     initProject(process.cwd());
     console.log("Initialized .opc");
+    return;
+  }
+
+  if (command === "update") {
+    const changes = updateProject(process.cwd());
+    console.log("Updated .opc");
+    for (const change of changes) {
+      console.log(`- ${change}`);
+    }
     return;
   }
 
@@ -62,6 +71,7 @@ async function main() {
 function printHelp() {
   console.log(`Usage:
   opc init
+  opc update
   opc new "需求文本" [--draft]
   opc run <work-item-id>
   opc resume <work-item-id>
