@@ -10,3 +10,13 @@ Core idea:
 ```text
 file protocol + state machine + agent execution + verification/rework
 ```
+
+## usage
+```
+opc init
+opc update
+opc new "需求文本" [--draft]
+opc run <work-item-id>
+opc resume <work-item-id>
+opc status [work-item-id]
+```
