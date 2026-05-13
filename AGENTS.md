@@ -61,6 +61,10 @@ Before implementing:
 
 Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
+## 错误处理
+- 禁止吞掉错误，除非明确说明不显示/处理错误
+- 总是在最外层处理错误
+
 
 
 

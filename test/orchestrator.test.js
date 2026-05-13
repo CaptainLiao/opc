@@ -8,7 +8,7 @@ const { initProject } = require("../lib/init");
 const { writeJson } = require("../lib/json-file");
 const { createWorkItem } = require("../lib/work-items");
 const { getStep } = require("../lib/workflow");
-const { buildPrompt, resolveConfiguredStep } = require("../lib/orchestrator");
+const { buildPrompt, resolveConfiguredStep, staleArtifactsForStep } = require("../lib/orchestrator");
 
 function tempProject(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "opc-test-"));
@@ -110,4 +110,21 @@ test("buildPrompt injects ui verification context", (t) => {
   assert.match(prompt, /timeoutMs: 45000/);
   assert.match(prompt, /screenshotsDir: \.opc\/work-items\/FEATURE-\d{8}-001-check-login-ui\/screenshots/);
   assert.match(prompt, /如果存在，读取 .*\/testcases\.md/);
+});
+
+test("stale artifact cleanup preserves prior-step inputs", () => {
+  assert.deepEqual(staleArtifactsForStep("created", "spec.md"), [
+    "spec.md",
+    "implementation.md",
+    "verify.md",
+    "pr.md"
+  ]);
+  assert.deepEqual(staleArtifactsForStep("design_done", "implementation.md"), [
+    "implementation.md",
+    "verify.md",
+    "pr.md"
+  ]);
+  assert.deepEqual(staleArtifactsForStep("code_done", "verify.md"), ["verify.md", "pr.md"]);
+  assert.deepEqual(staleArtifactsForStep("verified", "pr.md"), ["pr.md"]);
+  assert.deepEqual(staleArtifactsForStep("fixing_code", "implementation.md"), ["implementation.md", "pr.md"]);
 });
