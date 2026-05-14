@@ -112,3 +112,54 @@ test("opc resume automatically continues from the saved blocked stage", (t) => {
   assert.equal(nextState.retryCount.agent_verify, 0);
   assert.equal(nextState.retryCount.agent_ui_verify, 0);
 });
+
+test("opc resume infers the blocked stage for legacy blocked items", (t) => {
+  const root = tempProject(t);
+  const created = runOpc(root, ["new", "legacy blocked workflow", "--draft"]);
+  assert.equal(created.status, 0, created.stderr);
+
+  const itemDir = onlyWorkItemDir(root);
+  fs.writeFileSync(path.join(itemDir, "spec.md"), "uiVerification: required\n");
+  fs.writeFileSync(path.join(itemDir, "implementation.md"), "implemented\n");
+
+  const state = readOnlyState(root);
+  state.status = "blocked";
+  state.blockedReason = "legacy blocked item";
+  state.retryCount.agent_verify = 2;
+  writeOnlyState(root, state);
+
+  const result = runOpc(root, ["resume", state.id]);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, new RegExp(`${state.id} resumed -> code_done`));
+
+  const nextState = readOnlyState(root);
+  assert.equal(nextState.status, "blocked");
+  assert.equal(nextState.blockedFrom, "code_done");
+  assert.equal(nextState.retryCount.agent_verify, 0);
+});
+
+test("opc resume clears stale active run state after interruption", (t) => {
+  const root = tempProject(t);
+  const created = runOpc(root, ["new", "interrupted workflow", "--draft"]);
+  assert.equal(created.status, 0, created.stderr);
+
+  const itemDir = onlyWorkItemDir(root);
+  fs.writeFileSync(path.join(itemDir, "spec.md"), "uiVerification: required\n");
+  fs.writeFileSync(path.join(itemDir, "implementation.md"), "implemented\n");
+
+  const state = readOnlyState(root);
+  state.status = "code_done";
+  state.currentStep = "agent_verify";
+  state.activeRun = { agent: "agent_verify", status: "running" };
+  writeOnlyState(root, state);
+
+  const result = runOpc(root, ["resume", state.id]);
+
+  assert.equal(result.status, 0, result.stderr);
+  const nextState = readOnlyState(root);
+  assert.equal(nextState.status, "blocked");
+  assert.equal(nextState.currentStep, null);
+  assert.equal(nextState.activeRun, null);
+  assert.equal(nextState.blockedFrom, "code_done");
+});

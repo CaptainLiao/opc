@@ -56,8 +56,9 @@ async function main() {
     if (!id) throw new Error("Usage: opc resume <work-item-id>");
 
     const item = getWorkItem(process.cwd(), id);
-    if (item.state.status === "blocked") {
-      const nextStatus = restoreBlockedItem(item);
+    const nextStatus = prepareResume(item);
+    saveWorkItem(item);
+    if (nextStatus) {
       console.log(`${item.state.id} resumed -> ${nextStatus}`);
     }
 
@@ -86,19 +87,55 @@ async function main() {
   throw new Error(`Unknown command: ${command}`);
 }
 
-function restoreBlockedItem(item) {
-  const nextStatus = item.state.blockedFrom;
-  if (!nextStatus) throw new Error("Blocked stage is unknown.");
-  if (!getStep(nextStatus)) throw new Error(`Unknown workflow status: ${nextStatus}`);
+function prepareResume(item) {
+  let nextStatus = null;
 
-  item.state.status = nextStatus;
+  if (item.state.status === "blocked") {
+    nextStatus = item.state.blockedFrom || inferBlockedFrom(item);
+    if (!nextStatus) throw new Error("Blocked stage is unknown.");
+    if (!getStep(nextStatus)) throw new Error(`Unknown workflow status: ${nextStatus}`);
+
+    item.state.status = nextStatus;
+    resetRetryCount(item);
+    delete item.state.blockedReason;
+    delete item.state.blockedFrom;
+  }
+
   item.state.currentStep = null;
   item.state.activeRun = null;
-  resetRetryCount(item);
-  delete item.state.blockedReason;
-  delete item.state.blockedFrom;
-  saveWorkItem(item);
   return nextStatus;
+}
+
+function inferBlockedFrom(item) {
+  const activeRunStatus = statusForAgent(item.state.activeRun && item.state.activeRun.agent);
+  if (activeRunStatus) return activeRunStatus;
+
+  if (!hasArtifact(item, "spec.md")) return "created";
+  if (!hasArtifact(item, "implementation.md")) return "design_done";
+  if (!hasArtifact(item, "verify.md")) return "code_done";
+  if (!hasArtifact(item, "pr.md")) return verifyPassed(item) ? "verified" : "code_done";
+  return "verified";
+}
+
+function statusForAgent(agent) {
+  return {
+    agent_design: "created",
+    agent_code: "design_done",
+    agent_verify: "code_done",
+    agent_ui_verify: "code_done",
+    agent_pr: "verified"
+  }[agent] || null;
+}
+
+function hasArtifact(item, file) {
+  const artifact = path.join(item.dir, file);
+  return fs.existsSync(artifact) && fs.readFileSync(artifact, "utf8").trim() !== "";
+}
+
+function verifyPassed(item) {
+  const verifyFile = path.join(item.dir, "verify.md");
+  if (!fs.existsSync(verifyFile)) return false;
+  return /(^|\n)\s*status:\s*passed\s*($|\n)/i.test(fs.readFileSync(verifyFile, "utf8"));
 }
 
 function resetRetryCount(item) {
