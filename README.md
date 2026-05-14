@@ -16,6 +16,7 @@ file protocol + state machine + agent execution + verification/rework
 opc init
 opc update
 opc new "需求文本" [--draft]
+opc new --file request.md [--draft]
 opc run <work-item-id>
 opc resume <work-item-id>
 opc status [work-item-id]

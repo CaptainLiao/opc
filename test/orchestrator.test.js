@@ -6,9 +6,9 @@ const assert = require("node:assert/strict");
 
 const { initProject } = require("../lib/init");
 const { writeJson } = require("../lib/json-file");
-const { createWorkItem } = require("../lib/work-items");
+const { createWorkItem, getWorkItem, saveWorkItem } = require("../lib/work-items");
 const { getStep } = require("../lib/workflow");
-const { buildPrompt, resolveConfiguredStep, staleArtifactsForStep } = require("../lib/orchestrator");
+const { buildPrompt, resolveConfiguredStep, runWorkItem, staleArtifactsForStep } = require("../lib/orchestrator");
 
 function tempProject(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "opc-test-"));
@@ -127,4 +127,19 @@ test("stale artifact cleanup preserves prior-step inputs", () => {
   assert.deepEqual(staleArtifactsForStep("code_done", "verify.md"), ["verify.md", "pr.md"]);
   assert.deepEqual(staleArtifactsForStep("verified", "pr.md"), ["pr.md"]);
   assert.deepEqual(staleArtifactsForStep("fixing_code", "implementation.md"), ["implementation.md", "pr.md"]);
+});
+
+test("runWorkItem records the status that caused a guard block", async (t) => {
+  const root = tempProject(t);
+  const item = createWorkItem(root, "Check login UI");
+  item.state.status = "code_done";
+  item.state.verification.ui = true;
+  saveWorkItem(item);
+
+  await runWorkItem(root, item.state.id);
+
+  const blocked = getWorkItem(root, item.state.id);
+  assert.equal(blocked.state.status, "blocked");
+  assert.equal(blocked.state.blockedFrom, "code_done");
+  assert.equal(blocked.state.blockedReason, "uiVerification is required but .opc/config.json has no ui config");
 });
